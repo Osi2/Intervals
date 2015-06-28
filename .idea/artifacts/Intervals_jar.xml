@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Intervals:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Intervals_jar</output-path>
+    <root id="archive" name="Intervals.jar">
+      <element id="module-output" name="Intervals" />
+    </root>
+  </artifact>
+</component>
