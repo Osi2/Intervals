@@ -18,6 +18,9 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
+                    <source>1.7</source>
+                    <target>1.8</target>
+                    <executable>c:\Program Files\Java\jdk1.8.0_45\bin\javac.exe</executable>
                     <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
