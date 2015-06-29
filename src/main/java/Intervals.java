@@ -4,7 +4,7 @@
 public class Intervals {
     public static void main(String[] args) {
         log("Intervals started");
-        long x = Multiply(100,22);
+        double x = Multiply(100.0,22.0);
         log("multiply: " + String.valueOf(x));
         log("Intervals completed");
     }
@@ -13,6 +13,6 @@ public class Intervals {
         System.out.println(s);
     }
 
-    private static long Multiply(int a, int b){return a*b;}
+    public static double Multiply(double a, double b){return a*b;}
 
 }
