@@ -9,7 +9,7 @@ import java.util.List;
 public class Intervals {
     public static void main(String[] args) {
         log("Intervals started");
-        double x = Multiply(100.0,22.0);
+        double x = Multiply(200.0,22.0);
         log("multiply: " + String.valueOf(x));
         log("Intervals completed");
     }
