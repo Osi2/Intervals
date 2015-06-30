@@ -24,6 +24,7 @@ public class Intervals {
     {
         BufferedReader reader = null;
         String[] list = new String[1000000];
+
         try {
 
             String line = null;
