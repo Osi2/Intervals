@@ -1,7 +1,5 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * Created by Yegor on 6/28/2015.
@@ -9,26 +7,147 @@ import java.util.List;
 public class Intervals {
     public static void main(String[] args) {
         log("Intervals started");
-        double x = Multiply(200.0,22.0);
-        log("multiply: " + String.valueOf(x));
+
+        String fileExtents = "D:\\_Projects\\Intervals\\data\\extents.txt";
+        String filePoints = "D:\\_Projects\\Intervals\\data\\numbers.txt";
+        String resultFile = "D:\\_Projects\\Intervals\\data\\result.txt";
+
+        List<Point> list = ReadExtents(fileExtents);
+        String[] PointsArray = ReadNumbersFromFile(filePoints);
+        List<Point> PointsList = ConvertArrayToList(PointsArray);
+
+        ProcessPoints(list, PointsList, resultFile);
+
         log("Intervals completed");
     }
 
-    private static void log(String s){
-        System.out.println(s);
+    private static List<Point> ConvertArrayToList(String[] pointsArray) {
+
+        List<Point> points = new ArrayList<Point>();
+
+        for (int i = 0; i < pointsArray.length; i++) {
+            points.add(new Point(Integer.valueOf(pointsArray[i]),i));
+        }
+
+        Collections.sort(points, new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                return Integer.compare(o1.Value,o2.Value);
+            }
+        });
+
+        return points;
     }
 
-    public static double Multiply(double a, double b){return a*b;}
+    private static void ProcessPoints(List<Point> Extentslist, List<Point> PointsList, String outFile) {
+
+        List<Point> finalList = new ArrayList<Point>();
+
+        try (FileWriter fw = new FileWriter(outFile)){
+
+            int k = 0;
+            for (int i = 0; i < PointsList.size(); i++) {
+
+
+                long PrevCount = 0;
+
+                for (int j = k; j < Extentslist.size(); j++) {
+
+                    if (Integer.valueOf(PointsList.get(i).Value) > Extentslist.get(j).Value) {
+                        PrevCount = Extentslist.get(j).Count;
+                    }
+                    else {
+                        finalList.add(new Point(PointsList.get(i).Value, PointsList.get(i).Position, Extentslist.get(j).Count + 1));
+                        k = j;
+                        break;
+                    }
+
+                }
+            }
+
+            Collections.sort(finalList, new Comparator<Point>() {
+                @Override
+                public int compare(Point o1, Point o2) {
+                    return Integer.compare(o1.Position, o2.Position);
+                }
+            });
+
+            for (int i = 0; i < finalList.size(); i++) {
+                fw.write(finalList.get(i).Count + "\n");
+            }
+            fw.flush();
+            fw.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void log(String s){
+        System.out.print(s);
+    }
+
+    private static List<Point> ReadExtents(String fileExtents)
+    {
+        String[] Extentslist = ReadNumbersFromFile(fileExtents);
+
+        List<Point> list = Collections.synchronizedList(new ArrayList<Point>());
+
+
+        for (int i = 0; i < Extentslist.length; i++) {
+            if (Extentslist[i] == null ||  Extentslist[i].length() == 0) break;
+            String[] s = Extentslist[i].split(" ");
+            int a = Integer.valueOf(s[0]);
+            int b = Integer.valueOf(s[1]);
+            list.add(new Point('A',a) );
+            list.add(new Point('B',b));
+        }
+
+        Collections.sort(list, new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                return Integer.compare(o1.Value,o2.Value);
+            }
+        });
+        long counter = 0;
+        List<Point> syncList = new ArrayList<Point>();
+
+        synchronized (list){
+            Iterator<Point> iterator = list.iterator();
+            while(iterator.hasNext()){
+
+                Point p = iterator.next();
+                char type = p.Type;
+                int value = p.Value;
+
+                //log(String.valueOf(value));
+                //log(String.valueOf(type));
+
+
+                if (type == 'A') ++counter;
+                if (type == 'B') --counter;
+
+                //log(" counter: " + String.valueOf(counter));
+                //log("\n");
+                p.Count = counter;
+
+                syncList.add(p);
+            }
+        }
+
+        return syncList;
+
+    }
+
 
     public static String[] ReadNumbersFromFile(String file)
     {
-        BufferedReader reader = null;
         String[] list = new String[1000000];
 
-        try {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))){
 
             String line = null;
-            reader = new BufferedReader(new FileReader(file));
             int i = 0;
 
             while ((line = reader.readLine()) !=null)
@@ -36,16 +155,14 @@ public class Intervals {
                 list[i] = line;
                 i++;
             }
+
+            String[] listResult = new String[i];
+            System.arraycopy(list,0,listResult,0,i);
+            return  listResult;
+
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (reader != null) reader.close();
-                return list;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+            return  null;
         }
     }
 
