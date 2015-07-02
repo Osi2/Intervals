@@ -57,19 +57,19 @@
                    <systemProperties>
                        <property>
                            <name>FileExtents</name>
-                           <value>C:\Temp\Test\Intervals\data\extents.txt</value>
+                           <value>C:\Temp\Test\Intervals\extents.txt</value>
                        </property>
                        <property>
                            <name>FilePoints</name>
-                           <value>C:\Temp\Test\Intervals\data\numbers.txt</value>
+                           <value>C:\Temp\Test\Intervals\numbers.txt</value>
                        </property>
                        <property>
                            <name>FileExpected</name>
-                           <value>C:\Temp\Test\Intervals\data\expected.txt</value>
+                           <value>C:\Temp\Test\Intervals\expected.txt</value>
                        </property>
                        <property>
                            <name>FileResult</name>
-                           <value>C:\Temp\Test\Intervals\data\result.txt</value>
+                           <value>C:\Temp\Test\Intervals\result.txt</value>
                        </property>
                    </systemProperties>
                 </configuration>
