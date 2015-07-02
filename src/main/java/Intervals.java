@@ -6,19 +6,41 @@ import java.util.*;
  */
 public class Intervals {
     public static void main(String[] args) {
+
+        String fileExtents = args[0];
+        String filePoints = args[1];
+        String resultFile = args[2];
+
+        Intervals intervals = new Intervals();
+        intervals.Run(fileExtents,filePoints,resultFile);
+    }
+
+    public void Run(String fileExtents, String filePoints, String fileResult)
+    {
+
         log("Intervals started");
 
-        String fileExtents = "D:\\_Projects\\Intervals\\data\\extents.txt";
-        String filePoints = "D:\\_Projects\\Intervals\\data\\numbers.txt";
-        String resultFile = "D:\\_Projects\\Intervals\\data\\result.txt";
+        log("fileResult: " + fileResult);
+        log("filePoints: " + filePoints);
+        log("fileResult: " + fileResult);
+
+        File f = new File(fileResult);
+        if (f.exists()) f.delete();
+
+        long startTime = System.currentTimeMillis();
 
         List<Point> list = ReadExtents(fileExtents);
         String[] PointsArray = ReadNumbersFromFile(filePoints);
         List<Point> PointsList = ConvertArrayToList(PointsArray);
 
-        ProcessPoints(list, PointsList, resultFile);
+        ProcessPoints(list, PointsList, fileResult);
+
+        long estimatedTime = System.currentTimeMillis() - startTime;
 
         log("Intervals completed");
+        log("spent time, sec: " + String.valueOf((float)estimatedTime/1000));
+
+
     }
 
     private static List<Point> ConvertArrayToList(String[] pointsArray) {
@@ -61,7 +83,6 @@ public class Intervals {
                         k = j;
                         break;
                     }
-
                 }
             }
 
@@ -73,7 +94,7 @@ public class Intervals {
             });
 
             for (int i = 0; i < finalList.size(); i++) {
-                fw.write(finalList.get(i).Count + "\n");
+                fw.write(String.valueOf(finalList.get(i).Count) + "\n");
             }
             fw.flush();
             fw.close();
@@ -85,7 +106,7 @@ public class Intervals {
 
 
     private static void log(String s){
-        System.out.print(s);
+        System.out.println(s);
     }
 
     private static List<Point> ReadExtents(String fileExtents)

@@ -11,4 +11,5 @@ public class Point {
     public Point(int value, int position){this.Value = value; this.Position = position;}
     public Point(int value, int position, long count){this.Value = value; this.Position = position; this.Count = count;}
     public Point(char c, int value){this.Type = c; this.Value = value;}
+
 }

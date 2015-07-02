@@ -9,8 +9,18 @@ public class IntervalsTest {
 
     @Test
     public void TestReadNumbersFromFile() {
-        String[] listResult = Intervals.ReadNumbersFromFile("D:/_Projects/Intervals/data/result.txt");
-        String[] listExpected = Intervals.ReadNumbersFromFile("D:/_Projects/Intervals/data/expected.txt");
+
+        String fileExtents = System.getProperty("FileExtents");
+        String filePoints = System.getProperty("FilePoints");
+        String fileExpected = System.getProperty("FileResult");
+        String fileResult = System.getProperty("FileResult");
+
+        Intervals intervals = new Intervals();
+        intervals.Run(fileExtents,filePoints,fileResult);
+
+
+        String[] listResult = Intervals.ReadNumbersFromFile(fileResult);
+        String[] listExpected = Intervals.ReadNumbersFromFile(fileExpected);
         assertArrayEquals(listResult,listExpected);
 
     }
