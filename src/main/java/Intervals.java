@@ -20,7 +20,7 @@ public class Intervals {
 
         log("Intervals started");
 
-        log("fileResult: " + fileResult);
+        log("fileExtents: " + fileExtents);
         log("filePoints: " + filePoints);
         log("fileResult: " + fileResult);
 
