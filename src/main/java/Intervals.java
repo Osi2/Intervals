@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * Created by Yegor on 6/28/2015.
+ * Created by Yegor on 10/17/2016.
  */
 public class Intervals {
 
