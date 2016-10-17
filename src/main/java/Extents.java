@@ -16,16 +16,16 @@ public class Extents {
     private class Point {
 
         public char Type; // type A - start of interval, type B - end
-        public int Value; // value of point
-        public long Count; // count of extents for some point
+        public long Value; // value of point
+        public int Count; // count of extents for some point
         public int Position; // initial position of point
 
         //constructor for array of extents
-        public Point(char c, String value){this.Type = c; this.Value = Integer.valueOf(value);}
+        public Point(char c, String value){this.Type = c; this.Value = Long.valueOf(value);}
 
         //constructors for array of points
-        public Point(String value, int position){this.Value = Integer.valueOf(value); this.Position = position;}
-        public Point(int value, int position, long count){this.Value = value; this.Position = position; this.Count = count;}
+        public Point(String value, int position){this.Value = Long.valueOf(value); this.Position = position;}
+        public Point(long value, int position, int count){this.Value = value; this.Position = position; this.Count = count;}
 
     }
 
@@ -93,7 +93,7 @@ public class Extents {
         Collections.sort(points, new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
-                return Integer.compare(o1.Value,o2.Value);
+                return Long.compare(o1.Value,o2.Value);
             }
         });
 
@@ -149,43 +149,43 @@ public class Extents {
 
     private List<Point> ReadExtentsFromFile(String fileExtents)
     {
-        try{
+        try(BufferedReader reader = new BufferedReader(new FileReader(fileExtents))){
 
-            List<String> extents = Files.readAllLines(Paths.get(fileExtents), Charset.defaultCharset());
-
+            List<String> extents;
             List<Point> points = new ArrayList<>();
 
-            for (String s : extents) {
+            while (!(extents = ReadPointsFromFile(reader, _offset)).isEmpty())
+            {
+                for (String s : extents) {
 
-                if (s.isEmpty()) continue;
+                    if (s.isEmpty()) continue;
 
-                String[] s1 = s.split(" ");
+                    String[] s1 = s.split(" ");
 
-                points.add(new Point('A', s1[0].trim()));
-                points.add(new Point('B', s1[1].trim()));
+                    points.add(new Point('A', s1[0].trim()));
+                    points.add(new Point('B', s1[1].trim()));
+                }
             }
+
 
             Collections.sort(points, new Comparator<Point>() {
                 @Override
                 public int compare(Point o1, Point o2) {
-                    return Integer.compare(o1.Value, o2.Value);
+                    return Long.compare(o1.Value, o2.Value);
                 }
             });
 
 
-            long counter = 0;
-            List<Point> sortedPoints = new ArrayList<>();
+            int counter = 0;
 
             for (Point p : points) {
                 if (p.Type == 'A') counter++;
                 if (p.Type == 'B') counter--;
 
                 p.Count = counter;
-
-                sortedPoints.add(p);
             }
 
-            return sortedPoints;
+            return points;
         }
         catch (Exception e)
         {
