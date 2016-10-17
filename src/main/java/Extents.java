@@ -138,7 +138,7 @@ public class Extents {
             }
 
         } catch (IOException e) {
-            logError(e.toString());
+            logError(e.getMessage());
         }
     }
 
@@ -189,7 +189,7 @@ public class Extents {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            logError(e.getMessage());
             return  null;
         }
 
@@ -210,7 +210,7 @@ public class Extents {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            logError(e.getMessage());
             return  null;
         }
     }
