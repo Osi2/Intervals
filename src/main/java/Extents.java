@@ -7,9 +7,40 @@ import java.util.*;
 /**
  * Created by Yegor on 10/17/2016.
  */
-public class Intervals {
+public class Extents {
 
     private int _offset = 50000;
+    private boolean _writeOutput = false;
+
+
+    private class Point {
+
+        public char Type; // type A - start of interval, type B - end
+        public int Value; // value of point
+        public long Count; // count of extents for some point
+        public int Position; // initial position of point
+
+        //constructor for array of extents
+        public Point(char c, String value){this.Type = c; this.Value = Integer.valueOf(value);}
+
+        //constructors for array of points
+        public Point(String value, int position){this.Value = Integer.valueOf(value); this.Position = position;}
+        public Point(int value, int position, long count){this.Value = value; this.Position = position; this.Count = count;}
+
+    }
+
+    public static void main(String[] args) {
+
+        String fileExtents = "extents.txt";
+        String filePoints = "numbers.txt";
+        String fileExpected = "expected.txt";
+        String fileResult = "result.txt";
+
+        Extents extents = new Extents();
+
+        extents.Run(fileExtents,filePoints,fileResult);
+
+    }
 
 
     public void Run(String fileExtents, String filePoints, String fileResult)
@@ -112,14 +143,6 @@ public class Intervals {
     }
 
 
-    private static void log(String s){
-        System.out.println(s);
-    }
-
-    private static void logError(String s){
-        System.out.println("Error: " + s);
-    }
-
     // Read extents array and modify them to array of points
     // Then sort those points in ascending order
     // And then for each point count inside how many extents it is
@@ -217,5 +240,14 @@ public class Intervals {
 
     }
 
+    private void log(String s){
+        if (_writeOutput)
+            System.out.println(s);
+    }
+
+    private void logError(String s){
+        if (_writeOutput)
+            System.out.println("Error: " + s);
+    }
 
 }
