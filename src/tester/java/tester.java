@@ -1,6 +1,7 @@
 /**
  * Created by Yegor on 10/17/2016.
  */
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -23,8 +24,8 @@ public class tester {
 
         try {
 
-            List<String> listResult = Files.readAllLines(Paths.get(fileResult));
-            List<String> listExpected = Files.readAllLines(Paths.get(fileExpected));
+            List<String> listResult = Files.readAllLines(Paths.get(fileResult), Charset.defaultCharset());
+            List<String> listExpected = Files.readAllLines(Paths.get(fileExpected), Charset.defaultCharset());
 
             Boolean areEquals = Arrays.equals(listResult.toArray(), listExpected.toArray());
 

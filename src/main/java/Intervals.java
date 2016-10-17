@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -127,7 +128,7 @@ public class Intervals {
     {
         try{
 
-            List<String> extents = Files.readAllLines(Paths.get(fileExtents));
+            List<String> extents = Files.readAllLines(Paths.get(fileExtents), Charset.defaultCharset());
 
             List<Point> points = new ArrayList<>();
 
@@ -171,7 +172,7 @@ public class Intervals {
 
     }
 
-
+    // read specific amount of lines from file
     public List<String> ReadPointsFromFile(BufferedReader reader, int count)
     {
         List<String> strings = new ArrayList<>();
