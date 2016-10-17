@@ -228,13 +228,13 @@ public class Extents {
         Boolean deletedResults = (new File(fileResult).delete());
 
         if (!existsExtents)
-            System.out.println("extents file doesn't exist, exiting");
+            logError("extents file doesn't exist, exiting");
 
         if (!existsPoints)
-            System.out.println("extents file doesn't exist, exiting");
+            logError("extents file doesn't exist, exiting");
 
         if (existsResults && !deletedResults)
-            System.out.println("results file couldn't be deleted, exiting");
+            logError("results file couldn't be deleted, exiting");
 
         return existsExtents && existsPoints;
 
