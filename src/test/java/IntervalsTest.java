@@ -1,5 +1,7 @@
 import org.junit.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -10,18 +12,30 @@ public class IntervalsTest {
     @Test
     public void TestReadNumbersFromFile() {
 
+        System.out.println("Intervals test started");
+
         String fileExtents = System.getProperty("FileExtents");
         String filePoints = System.getProperty("FilePoints");
         String fileExpected = System.getProperty("FileResult");
         String fileResult = System.getProperty("FileResult");
 
         Intervals intervals = new Intervals();
-        intervals.Run(fileExtents,filePoints,fileResult);
+        intervals.Run(fileExtents, filePoints, fileResult);
 
 
-        String[] listResult = Intervals.ReadNumbersFromFile(fileResult);
-        String[] listExpected = Intervals.ReadNumbersFromFile(fileExpected);
-        assertArrayEquals(listResult,listExpected);
+        try {
+
+        List<String> listResult = Files.readAllLines(Paths.get(fileResult));
+        List<String> listExpected = Files.readAllLines(Paths.get(fileExpected));
+
+        assertArrayEquals(listResult.toArray(), listExpected.toArray());
+
+        }
+        catch (Exception e)
+        {
+
+        }
+
 
     }
 

@@ -1,54 +1,61 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
  * Created by Yegor on 6/28/2015.
  */
 public class Intervals {
-    public static void main(String[] args) {
 
-        String fileExtents = args[0];
-        String filePoints = args[1];
-        String resultFile = args[2];
+    private int _offset = 50000;
 
-        Intervals intervals = new Intervals();
-        intervals.Run(fileExtents,filePoints,resultFile);
-    }
 
     public void Run(String fileExtents, String filePoints, String fileResult)
     {
 
-        log("Intervals started");
+        log("program started");
 
-        log("fileResult: " + fileResult);
-        log("filePoints: " + filePoints);
-        log("fileResult: " + fileResult);
-
-        File f = new File(fileResult);
-        if (f.exists()) f.delete();
+        if (!checkFiles(fileExtents,filePoints,fileResult)) return;
 
         long startTime = System.currentTimeMillis();
 
-        List<Point> list = ReadExtents(fileExtents);
-        String[] PointsArray = ReadNumbersFromFile(filePoints);
-        List<Point> PointsList = ConvertArrayToList(PointsArray);
+        List<Point> extents = ReadExtentsFromFile(fileExtents);
 
-        ProcessPoints(list, PointsList, fileResult);
+        List<String> pointsList;
+
+        try(BufferedReader reader = new BufferedReader(new FileReader(filePoints)))
+        {
+
+            while (!(pointsList = ReadPointsFromFile(reader, _offset)).isEmpty())
+            {
+                List<Point> points = ConvertArrayToList(pointsList);
+                ProcessPoints(extents, points, fileResult);
+            }
+
+        }
+        catch (IOException e)
+        {
+            logError(e.toString());
+        }
+
 
         long estimatedTime = System.currentTimeMillis() - startTime;
 
-        log("Intervals completed");
+        log("program completed");
         log("spent time, sec: " + String.valueOf((float)estimatedTime/1000));
 
 
     }
 
-    private static List<Point> ConvertArrayToList(String[] pointsArray) {
+    private List<Point> ConvertArrayToList(List<String> strings) {
 
-        List<Point> points = new ArrayList<Point>();
+        final List<Point> points = new ArrayList<>();
 
-        for (int i = 0; i < pointsArray.length; i++) {
-            points.add(new Point(Integer.valueOf(pointsArray[i]),i));
+        int i = 0;
+        for (String s: strings) {
+            points.add(new Point(s,i));
+            i++;
         }
 
         Collections.sort(points, new Comparator<Point>() {
@@ -61,46 +68,45 @@ public class Intervals {
         return points;
     }
 
-    private static void ProcessPoints(List<Point> Extentslist, List<Point> PointsList, String outFile) {
+    private void ProcessPoints(List<Point> extents, List<Point> points, String outFile) {
 
-        List<Point> finalList = new ArrayList<Point>();
+        List<Point> resultList = new ArrayList<>();
 
-        try (FileWriter fw = new FileWriter(outFile)){
+        try (FileWriter fw = new FileWriter(outFile,true)){
 
             int k = 0;
-            for (int i = 0; i < PointsList.size(); i++) {
+            Point pe;
 
+            for (Point p: points) {
 
-                long PrevCount = 0;
+                for (int j = k; j < extents.size(); j++) {
 
-                for (int j = k; j < Extentslist.size(); j++) {
+                    pe = extents.get(j);
 
-                    if (Integer.valueOf(PointsList.get(i).Value) > Extentslist.get(j).Value) {
-                        PrevCount = Extentslist.get(j).Count;
-                    }
-                    else {
-                        finalList.add(new Point(PointsList.get(i).Value, PointsList.get(i).Position, Extentslist.get(j).Count + 1));
+                    if (p.Value <= pe.Value) {
+
+                        resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
                         k = j;
                         break;
                     }
                 }
             }
 
-            Collections.sort(finalList, new Comparator<Point>() {
+            // Sort array by initial position
+            Collections.sort(resultList, new Comparator<Point>() {
                 @Override
                 public int compare(Point o1, Point o2) {
                     return Integer.compare(o1.Position, o2.Position);
                 }
             });
 
-            for (int i = 0; i < finalList.size(); i++) {
-                fw.write(String.valueOf(finalList.get(i).Count) + "\n");
+            // Output results
+            for (Point p: resultList) {
+                fw.write(String.valueOf(p.Count) + "\n");
             }
-            fw.flush();
-            fw.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e.toString());
         }
     }
 
@@ -109,82 +115,106 @@ public class Intervals {
         System.out.println(s);
     }
 
-    private static List<Point> ReadExtents(String fileExtents)
+    private static void logError(String s){
+        System.out.println("Error: " + s);
+    }
+
+    // Read extents array and modify them to array of points
+    // Then sort those points in ascending order
+    // And then for each point count inside how many extents it is
+
+    private List<Point> ReadExtentsFromFile(String fileExtents)
     {
-        String[] Extentslist = ReadNumbersFromFile(fileExtents);
+        try{
 
-        List<Point> list = Collections.synchronizedList(new ArrayList<Point>());
+            List<String> extents = Files.readAllLines(Paths.get(fileExtents));
 
+            List<Point> points = new ArrayList<>();
 
-        for (int i = 0; i < Extentslist.length; i++) {
-            if (Extentslist[i] == null ||  Extentslist[i].length() == 0) break;
-            String[] s = Extentslist[i].split(" ");
-            int a = Integer.valueOf(s[0]);
-            int b = Integer.valueOf(s[1]);
-            list.add(new Point('A',a) );
-            list.add(new Point('B',b));
-        }
+            for (String s : extents) {
 
-        Collections.sort(list, new Comparator<Point>() {
-            @Override
-            public int compare(Point o1, Point o2) {
-                return Integer.compare(o1.Value,o2.Value);
+                if (s.isEmpty()) continue;
+
+                String[] s1 = s.split(" ");
+
+                points.add(new Point('A', s1[0].trim()));
+                points.add(new Point('B', s1[1].trim()));
             }
-        });
-        long counter = 0;
-        List<Point> syncList = new ArrayList<Point>();
 
-        synchronized (list){
-            Iterator<Point> iterator = list.iterator();
-            while(iterator.hasNext()){
-
-                Point p = iterator.next();
-                char type = p.Type;
-                int value = p.Value;
-
-                //log(String.valueOf(value));
-                //log(String.valueOf(type));
+            Collections.sort(points, new Comparator<Point>() {
+                @Override
+                public int compare(Point o1, Point o2) {
+                    return Integer.compare(o1.Value, o2.Value);
+                }
+            });
 
 
-                if (type == 'A') ++counter;
-                if (type == 'B') --counter;
+            long counter = 0;
+            List<Point> sortedPoints = new ArrayList<>();
 
-                //log(" counter: " + String.valueOf(counter));
-                //log("\n");
+            for (Point p : points) {
+                if (p.Type == 'A') counter++;
+                if (p.Type == 'B') counter--;
+
                 p.Count = counter;
 
-                syncList.add(p);
+                sortedPoints.add(p);
             }
-        }
 
-        return syncList;
+            return sortedPoints;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return  null;
+        }
 
     }
 
 
-    public static String[] ReadNumbersFromFile(String file)
+    public List<String> ReadPointsFromFile(BufferedReader reader, int count)
     {
-        String[] list = new String[1000000];
+        List<String> strings = new ArrayList<>();
+        String line;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))){
+        try {
 
-            String line = null;
-            int i = 0;
-
-            while ((line = reader.readLine()) !=null)
-            {
-                list[i] = line;
-                i++;
+            while (strings.size() < count && (line = reader.readLine()) != null) {
+                strings.add(line);
             }
-
-            String[] listResult = new String[i];
-            System.arraycopy(list,0,listResult,0,i);
-            return  listResult;
-
-        } catch (IOException e) {
+            return strings;
+        }
+        catch (Exception e)
+        {
             e.printStackTrace();
             return  null;
         }
     }
+
+
+    /// check that source file exist
+    /// and result file is deleted
+    /// otherwise exit
+    private Boolean checkFiles(String fileExtents, String filePoints, String fileResult)
+    {
+        Boolean existsExtents = (new File(fileExtents).exists());
+        Boolean existsPoints = (new File(filePoints).exists());
+
+        Boolean existsResults = (new File(fileResult).exists());
+        Boolean deletedResults = (new File(fileResult).delete());
+
+        if (!existsExtents)
+            System.out.println("extents file doesn't exist, exiting");
+
+        if (!existsPoints)
+            System.out.println("extents file doesn't exist, exiting");
+
+        if (existsResults && !deletedResults)
+            System.out.println("results file couldn't be deleted, exiting");
+
+        return existsExtents && existsPoints;
+
+    }
+
 
 }
