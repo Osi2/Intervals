@@ -1,7 +1,4 @@
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -9,8 +6,16 @@ import java.util.*;
  */
 public class Extents {
 
-    private int _offset = 50000;
+    private int _offsetPoints = 50000; // read by this count from numbers.txt
+    private int _offsetExtents = 5000000; // read by this count from extents.txt and save to temp file
     private boolean _writeOutput = false;
+    private int _numPartitions = 10;
+    private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\extents_res.txt";
+    private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\extents_tmp_a_%d.txt";
+    private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\extents_tmp_b_%d.txt";
+
+    private List<Long> _extentsA;
+    private List<Long> _extentsB;
 
 
     private class Point {
@@ -52,23 +57,21 @@ public class Extents {
 
         long startTime = System.currentTimeMillis();
 
-        List<Point> extents = ReadExtentsFromFile(fileExtents);
+        List<Point> extents, points;
 
-        List<String> pointsList;
-
-        try(BufferedReader reader = new BufferedReader(new FileReader(filePoints)))
+        // read points from numbers.txt sequentially by row count = _offsetExtents
+        while (!(extents = ReadAndSortExtents(fileExtents, _offsetExtents)).isEmpty())
         {
+            // read points from numbers.txt sequentially by row count = _offsetPoints
+            try (BufferedReader reader = new BufferedReader(new FileReader(filePoints))) {
 
-            while (!(pointsList = ReadPointsFromFile(reader, _offset)).isEmpty())
-            {
-                List<Point> points = ConvertArrayToList(pointsList);
-                ProcessPoints(extents, points, fileResult);
+                while (!(points = ReadPointsFromFile(reader, _offsetPoints, false)).isEmpty()) {
+                    ProcessPoints(extents, points, fileResult);
+                }
+
+            } catch (IOException e) {
+                logError(e.toString());
             }
-
-        }
-        catch (IOException e)
-        {
-            logError(e.toString());
         }
 
 
@@ -80,25 +83,6 @@ public class Extents {
 
     }
 
-    private List<Point> ConvertArrayToList(List<String> strings) {
-
-        final List<Point> points = new ArrayList<>();
-
-        int i = 0;
-        for (String s: strings) {
-            points.add(new Point(s,i));
-            i++;
-        }
-
-        Collections.sort(points, new Comparator<Point>() {
-            @Override
-            public int compare(Point o1, Point o2) {
-                return Long.compare(o1.Value,o2.Value);
-            }
-        });
-
-        return points;
-    }
 
     private void ProcessPoints(List<Point> extents, List<Point> points, String outFile) {
 
@@ -147,66 +131,135 @@ public class Extents {
     // Then sort those points in ascending order
     // And then for each point count inside how many extents it is
 
-    private List<Point> ReadExtentsFromFile(String fileExtents)
+    private List<Point> ReadAndSortExtents(String fileExtents, int count)
     {
-        try(BufferedReader reader = new BufferedReader(new FileReader(fileExtents))){
+        int rows;
 
-            List<String> extents;
-            List<Point> points = new ArrayList<>();
+        try(BufferedReader reader = new BufferedReader(new FileReader(fileExtents))) {
 
-            while (!(extents = ReadPointsFromFile(reader, _offset)).isEmpty())
-            {
-                for (String s : extents) {
+            for(int i = 0; i< _numPartitions; i++){
 
-                    if (s.isEmpty()) continue;
+                try (BufferedWriter bw1 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpA, i)));
+                     BufferedWriter bw2 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpB, i)))) {
 
-                    String[] s1 = s.split(" ");
+                    rows = ReadExtentsFromFile(reader, count);
 
-                    points.add(new Point('A', s1[0].trim()));
-                    points.add(new Point('B', s1[1].trim()));
+                    if (rows > 0) {
+
+                        for(long l: _extentsA)
+                        {
+                            bw1.write(String.valueOf(l) + "\n");
+                        }
+                        bw1.flush();
+
+                        for(long l: _extentsB)
+                        {
+                            bw2.write(String.valueOf(l) + "\n");
+                        }
+                        bw2.flush();
+                    }
+
+                    if (rows < count)
+                        break;
+
+                } catch (Exception e) {
+                    logError(e.getMessage());
+                    return null;
                 }
             }
-
-
-            Collections.sort(points, new Comparator<Point>() {
-                @Override
-                public int compare(Point o1, Point o2) {
-                    return Long.compare(o1.Value, o2.Value);
-                }
-            });
-
-
-            int counter = 0;
-
-            for (Point p : points) {
-                if (p.Type == 'A') counter++;
-                if (p.Type == 'B') counter--;
-
-                p.Count = counter;
-            }
-
-            return points;
         }
         catch (Exception e)
         {
             logError(e.getMessage());
-            return  null;
+            return null;
+        }
+
+        /// TODO: make merge sort in one large extentsRes.txt file
+
+//        try(BufferedReader reader = new BufferedReader(new FileReader(fileExtents))){
+//
+//            List<Point> extents = ReadPointsFromFile(reader,_offsetPoints,false);
+//
+//            int counter = 0;
+//
+//            for (Point p : extents) {
+//                if (p.Type == 'A') counter++;
+//                if (p.Type == 'B') counter--;
+//
+//                p.Count = counter;
+//            }
+//            return extents;
+//
+//        }
+//        catch (Exception e)
+//        {
+//            return  null;
+//        }
+
+        return null;
+
+    }
+
+    public int ReadExtentsFromFile(BufferedReader reader, int count)
+    {
+        _extentsA = new ArrayList<>();
+        _extentsB = new ArrayList<>();
+
+        String line;
+        String s[];
+
+        try {
+
+            int i = 0;
+            while (i < count && (line = reader.readLine()) != null) {
+
+                    s = line.split(" ");
+                    if (s.length != 2) continue;
+
+                    _extentsA.add(Long.valueOf(s[0]));
+                    _extentsB.add(Long.valueOf(s[1]));
+
+                i++;
+            }
+
+            Collections.sort(_extentsA);
+            Collections.sort(_extentsB);
+
+            return i;
+        }
+        catch (Exception e)
+        {
+            logError(e.getMessage());
+            return 0;
         }
 
     }
 
     // read specific amount of lines from file
-    public List<String> ReadPointsFromFile(BufferedReader reader, int count)
+    public List<Point> ReadPointsFromFile(BufferedReader reader, int count, boolean doExtents )
     {
-        List<String> strings = new ArrayList<>();
+        List<Point> points = new ArrayList<>();
+
         String line;
 
         try {
 
-            while (strings.size() < count && (line = reader.readLine()) != null) {
-                strings.add(line);
+            int i = 0;
+            while (i < count && (line = reader.readLine()) != null) {
+
+                points.add(new Point(line, i));
+
+                i++;
             }
-            return strings;
+
+            Collections.sort(points, new Comparator<Point>() {
+                @Override
+                public int compare(Point o1, Point o2) {
+                    return Long.compare(o1.Value,o2.Value);
+                }
+            });
+
+            return points;
         }
         catch (Exception e)
         {
@@ -249,5 +302,30 @@ public class Extents {
         if (_writeOutput)
             System.out.println("Error: " + s);
     }
+
+    private long[] merge(long[] a, long[] b) {
+
+        long[] answer = new long[a.length + b.length];
+        int i = 0, j = 0, k = 0;
+
+        while (i < a.length && j < b.length)
+        {
+            if (a[i] < b[j])
+                answer[k++] = a[i++];
+
+            else
+                answer[k++] = b[j++];
+        }
+
+        while (i < a.length)
+            answer[k++] = a[i++];
+
+
+        while (j < b.length)
+            answer[k++] = b[j++];
+
+        return answer;
+    }
+
 
 }
