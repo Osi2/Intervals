@@ -29,6 +29,7 @@ public class Extents {
         public long Value; // value of point
         public int Count; // count of extents for some point
         public int Position; // initial position of point
+        public boolean Processed;
 
         //constructor for array of extents
         //public Point(char c, String value){this.Type = c; this.Value = Long.valueOf(value);}
@@ -87,21 +88,27 @@ public class Extents {
             Processor processor = new Processor();
             processor.Run();
 
+            long estimatedTime0 = System.currentTimeMillis() - startTime;
+
+            log("files created, sec: " + String.valueOf((float)estimatedTime0/1000));
+
             List<Point> results=new ArrayList<>();
-            int i = 0,j = 0;
+            int i = 0;
 
             // read points from numbers.txt sequentially by row count = _offsetExtents
             try (BufferedReader br1 = new BufferedReader(new FileReader(filePoints));
                  BufferedWriter bw = new BufferedWriter(new FileWriter(fileResult, true))) {
 
                 while (!(points = ReadPointsFromFile(br1, _offsetPoints, false, i++)).isEmpty()) {
-                    log("read number of points: " + points.size());
+                    log("read number of points: " + points.size() + " start point: " + points.get(0).Position);
+
+                    int j = 0;
 
                     try (FileReader f = new FileReader(fileExtentsRes);
                             BufferedReader br2 = new BufferedReader(f)){
 
                         while (!(extents = ReadPointsFromFile(br2, _offsetExtents, true, j++)).isEmpty()) {
-                            log("read number of extents: " + extents.size());
+                            log("read number of extents: " + extents.size() + " start point: " + extents.get(0).Position);
                             List<Point> l = ProcessPoints(extents, points);
                             log("processed number of points: " + l.size());
 
@@ -150,17 +157,16 @@ public class Extents {
 
             for (Point p: points) {
 
+                if (p.Processed) continue;
+
                 for (int j = k; j < extents.size(); j++) {
 
                     pe = extents.get(j);
 
                     if (p.Value <= pe.Value) {
 
-                        if (_indexesRes.indexOf(p.Position) < 0) {
-
-                            resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
-                            _indexesRes.add(p.Position);
-                        }
+                        p.Processed = true;
+                        resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
                         k = j;
                         break;
                     }
