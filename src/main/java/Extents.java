@@ -16,12 +16,8 @@ public class Extents {
     private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\data_a_%d.txt";
     private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\data_b_%d.txt";
 
-    private List<Long> _extentsA;
-    private List<Long> _extentsB;
     private long[] _extentsA2;
     private long[] _extentsB2;
-    private List<Integer> _indexesRes = new ArrayList<>();
-
 
     private class Point {
 
@@ -37,21 +33,6 @@ public class Extents {
         //constructors for array of points
         public Point(String value, int position){this.Value = Long.valueOf(value); this.Position = position;}
         public Point(long value, int position, int count){this.Value = value; this.Position = position; this.Count = count;}
-
-//        @Override
-//        public boolean equals(Object obj){
-//
-//            if (obj == null) return  false;
-//
-//            Point point = (Point)obj;
-//
-//            return  (this.Value == point.Value);
-//        }
-//
-//        @Override
-//        public int hashCode(){
-//            return Position;
-//        }
 
     }
 
@@ -167,6 +148,7 @@ public class Extents {
 
                         p.Processed = true;
                         resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
+
                         k = j;
                         break;
                     }
@@ -358,30 +340,4 @@ public class Extents {
         if (_writeOutput)
             System.out.println("Error: " + s);
     }
-
-    private long[] merge(long[] a, long[] b) {
-
-        long[] answer = new long[a.length + b.length];
-        int i = 0, j = 0, k = 0;
-
-        while (i < a.length && j < b.length)
-        {
-            if (a[i] < b[j])
-                answer[k++] = a[i++];
-
-            else
-                answer[k++] = b[j++];
-        }
-
-        while (i < a.length)
-            answer[k++] = a[i++];
-
-
-        while (j < b.length)
-            answer[k++] = b[j++];
-
-        return answer;
-    }
-
-
 }

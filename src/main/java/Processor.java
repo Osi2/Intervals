@@ -1,6 +1,4 @@
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.File;
@@ -22,7 +20,7 @@ public class Processor {
     private long resAPrev;
     private long resB;
     private long resBPrev;
-    private String resFile = "D:\\_Projects\\Intervals\\data\\tmp\\result.txt";
+    private String resFile = "D:\\_Projects\\Intervals\\data\\tmp\\data_counts.txt";
 
     public Processor() throws FileNotFoundException
     {
