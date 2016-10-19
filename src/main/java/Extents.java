@@ -7,15 +7,17 @@ import java.util.*;
 public class Extents {
 
     private int _offsetPoints = 50000; // read by this count from numbers.txt
-    private int _offsetExtents = 5000000; // read by this count from extents.txt and save to temp file
+    private int _offsetExtents = 5; // read by this count from extents.txt and save to temp file
     private boolean _writeOutput = false;
-    private int _numPartitions = 10;
+    private int _numPartitions = 100;
     private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\extents_res.txt";
-    private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\extents_tmp_a_%d.txt";
-    private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\extents_tmp_b_%d.txt";
+    private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\data_a_%d.txt";
+    private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\data_b_%d.txt";
 
     private List<Long> _extentsA;
     private List<Long> _extentsB;
+    private long[] _extentsA2;
+    private long[] _extentsB2;
 
 
     private class Point {
@@ -59,20 +61,31 @@ public class Extents {
 
         List<Point> extents, points;
 
-        // read points from numbers.txt sequentially by row count = _offsetExtents
-        while (!(extents = ReadAndSortExtents(fileExtents, _offsetExtents)).isEmpty())
+        if (ReadAndSortExtents(fileExtents, _offsetExtents))
         {
-            // read points from numbers.txt sequentially by row count = _offsetPoints
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePoints))) {
-
-                while (!(points = ReadPointsFromFile(reader, _offsetPoints, false)).isEmpty()) {
-                    ProcessPoints(extents, points, fileResult);
-                }
-
-            } catch (IOException e) {
-                logError(e.toString());
+            try {
+                Processor processor = new Processor();
+                processor.Run();
+            }
+            catch (Exception e){
+                System.out.println(e.toString());
             }
         }
+
+        // read points from numbers.txt sequentially by row count = _offsetExtents
+//        if (!(extents = ReadAndSortExtents(fileExtents, _offsetExtents)).isEmpty())
+//        {
+//            // read points from numbers.txt sequentially by row count = _offsetPoints
+//            try (BufferedReader reader = new BufferedReader(new FileReader(filePoints))) {
+//
+//                while (!(points = ReadPointsFromFile(reader, _offsetPoints, false)).isEmpty()) {
+//                    ProcessPoints(extents, points, fileResult);
+//                }
+//
+//            } catch (IOException e) {
+//                logError(e.toString());
+//            }
+//        }
 
 
         long estimatedTime = System.currentTimeMillis() - startTime;
@@ -131,7 +144,7 @@ public class Extents {
     // Then sort those points in ascending order
     // And then for each point count inside how many extents it is
 
-    private List<Point> ReadAndSortExtents(String fileExtents, int count)
+    private boolean ReadAndSortExtents(String fileExtents, int count)
     {
         int rows;
 
@@ -139,39 +152,49 @@ public class Extents {
 
             for(int i = 0; i< _numPartitions; i++){
 
-                try (BufferedWriter bw1 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpA, i)));
-                     BufferedWriter bw2 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpB, i)))) {
+                rows = ReadExtentsFromFile(reader, count);
 
-                    rows = ReadExtentsFromFile(reader, count);
+                if (rows > 0) {
 
-                    if (rows > 0) {
+                    try (BufferedWriter bw1 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpA, i)));
+                         BufferedWriter bw2 = new BufferedWriter(new FileWriter(String.format(fileExtentsTmpB, i)))) {
 
-                        for(long l: _extentsA)
-                        {
+
+                        for (long l : _extentsA2) {
                             bw1.write(String.valueOf(l) + "\n");
                         }
                         bw1.flush();
+                        bw1.close();
 
-                        for(long l: _extentsB)
-                        {
+                        for (long l : _extentsB2) {
                             bw2.write(String.valueOf(l) + "\n");
                         }
                         bw2.flush();
+                        bw1.close();
+
+
+                        _extentsA2 = null;
+                        _extentsB2 = null;
+
+                        System.gc();
+                        System.runFinalization();
+
+                        // check if it was last file
+                        if (rows < count)
+                            break;
+
+                    } catch (Exception e) {
+                        logError(e.getMessage());
+                        return false;
                     }
-
-                    if (rows < count)
-                        break;
-
-                } catch (Exception e) {
-                    logError(e.getMessage());
-                    return null;
                 }
             }
+            return true;
         }
         catch (Exception e)
         {
             logError(e.getMessage());
-            return null;
+            return false;
         }
 
         /// TODO: make merge sort in one large extentsRes.txt file
@@ -196,14 +219,14 @@ public class Extents {
 //            return  null;
 //        }
 
-        return null;
+//        return false;
 
     }
 
     public int ReadExtentsFromFile(BufferedReader reader, int count)
     {
-        _extentsA = new ArrayList<>();
-        _extentsB = new ArrayList<>();
+        _extentsA2 = new long[count];
+        _extentsB2 = new long[count];
 
         String line;
         String s[];
@@ -213,17 +236,17 @@ public class Extents {
             int i = 0;
             while (i < count && (line = reader.readLine()) != null) {
 
-                    s = line.split(" ");
-                    if (s.length != 2) continue;
+                s = line.split(" ");
+                if (s.length != 2) continue;
 
-                    _extentsA.add(Long.valueOf(s[0]));
-                    _extentsB.add(Long.valueOf(s[1]));
+                _extentsA2[i]=Long.valueOf(s[0]);
+                _extentsB2[i]=Long.valueOf(s[1]);
 
                 i++;
             }
 
-            Collections.sort(_extentsA);
-            Collections.sort(_extentsB);
+            Arrays.sort(_extentsA2);
+            Arrays.sort(_extentsB2);
 
             return i;
         }
