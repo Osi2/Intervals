@@ -1,4 +1,6 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -7,10 +9,10 @@ import java.util.*;
 public class Extents {
 
     private int _offsetPoints = 50000; // read by this count from numbers.txt
-    private int _offsetExtents = 10000; // read by this count from extents.txt and save to temp file
+    private int _offsetExtents = 5; // read by this count from extents.txt and save to temp file
     private boolean _writeOutput = true;
     private int _numPartitions = 100;
-    private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\tmp\\result.txt";
+    private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\tmp\\data_counts.txt";
     private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\data_a_%d.txt";
     private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\data_b_%d.txt";
 
@@ -28,11 +30,26 @@ public class Extents {
         public int Position; // initial position of point
 
         //constructor for array of extents
-        public Point(char c, String value){this.Type = c; this.Value = Long.valueOf(value);}
+        //public Point(char c, String value){this.Type = c; this.Value = Long.valueOf(value);}
 
         //constructors for array of points
         public Point(String value, int position){this.Value = Long.valueOf(value); this.Position = position;}
         public Point(long value, int position, int count){this.Value = value; this.Position = position; this.Count = count;}
+
+        @Override
+        public boolean equals(Object obj){
+
+            if (obj == null) return  false;
+
+            Point point = (Point)obj;
+
+            return  (this.Value == point.Value);
+        }
+
+        @Override
+        public int hashCode(){
+            return Position;
+        }
 
     }
 
@@ -41,7 +58,7 @@ public class Extents {
         String fileExtents = "extents.txt";
         String filePoints = "numbers.txt";
         String fileExpected = "expected.txt";
-        String fileResult = "result.txt";
+        String fileResult = "D:\\_Projects\\Intervals\\data\\tmp\\result.txt";
 
         Extents extents = new Extents();
 
@@ -70,35 +87,57 @@ public class Extents {
             processor.Run();
 
             List<Point> results=new ArrayList<>();
+            Set<Point> set = new HashSet<>();
 
             // read points from numbers.txt sequentially by row count = _offsetExtents
-        try (BufferedReader br1 = new BufferedReader(new FileReader(filePoints));
-             BufferedReader br2 = new BufferedReader(new FileReader(fileExtentsRes));
-             BufferedWriter bw = new BufferedWriter(new FileWriter(fileResult,true))) {
+            try (BufferedReader br1 = new BufferedReader(new FileReader(filePoints));
+                 BufferedWriter bw = new BufferedWriter(new FileWriter(fileResult, true))) {
 
-            while (!(points = ReadPointsFromFile(br1, _offsetPoints, false)).isEmpty()) {
-                while (!(extents = ReadPointsFromFile(br2, _offsetExtents, true)).isEmpty()) {
-                    results.addAll(ProcessPoints(extents, points, fileResult));
+                while (!(points = ReadPointsFromFile(br1, _offsetPoints, false)).isEmpty()) {
+                    log("read number of points: " + points.size());
+
+                    try (FileReader f = new FileReader(fileExtentsRes);
+                            BufferedReader br2 = new BufferedReader(f)){
+
+                        while (!(extents = ReadPointsFromFile(br2, _offsetExtents, true)).isEmpty()) {
+                            log("read number of extents: " + extents.size());
+                            List<Point> l = ProcessPoints(extents, points);
+                            log("processed number of points: " + l.size());
+
+                            set.addAll(l);
+                        }
+                        results.addAll(set);
+                        log("distinct number of points: " + results.size());
+
+                        Collections.sort(results, new Comparator<Point>() {
+                            @Override
+                            public int compare(Point o1, Point o2) {
+                                return Integer.compare(o1.Position, o2.Position);
+                            }
+                        });
+
+                        for (Point p : results) {
+                            bw.write(String.valueOf(p.Count) + "\n");
+                        }
+                        results.clear();
+
+                        f.close();
+                        br2.close();
+                    }
+                    catch (Exception e){
+                        logError(e.getMessage());
+                    }
                 }
 
-                for (Point p: results) {
-                    bw.write(String.valueOf(p.Count) + "\n");
-                }
-
+            } catch (IOException e) {
+                logError(e.toString());
             }
 
-        } catch (IOException e) {
-            logError(e.toString());
-        }
-//        }
         }
         catch (Exception e){
             logError(e.getMessage());
             e.printStackTrace();
         }
-
-
-
 
 
         long estimatedTime = System.currentTimeMillis() - startTime;
@@ -107,10 +146,10 @@ public class Extents {
         log("spent time, sec: " + String.valueOf((float)estimatedTime/1000));
 
 
-    }
+      }
 
 
-    private List<Point> ProcessPoints(List<Point> extents, List<Point> points, String outFile) {
+    private List<Point> ProcessPoints(List<Point> extents, List<Point> points) {
 
         List<Point> resultList = new ArrayList<>();
 
@@ -125,7 +164,7 @@ public class Extents {
 
                     if (p.Value <= pe.Value) {
 
-                        resultList.add(new Point(p.Value, p.Position, pe.Count));
+                        resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
                         k = j;
                         break;
                     }
@@ -140,10 +179,6 @@ public class Extents {
                 }
             });
 
-            // Output results
-//            for (Point p: resultList) {
-//                fw.write(String.valueOf(p.Count) + "\n");
-//            }
         return resultList;
     }
 
@@ -254,9 +289,12 @@ public class Extents {
             int i = 0;
             while (i < count && (line = reader.readLine()) != null) {
 
+                if (line.trim().isEmpty()) continue;
+
                 if(doExtents) {
 
                     s=line.split(" ");
+                    if (s.length != 2) continue;
                     points.add(new Point(Long.valueOf(s[0]),i,Integer.valueOf(s[1])));
 
                 }
@@ -266,12 +304,14 @@ public class Extents {
                 i++;
             }
 
-            Collections.sort(points, new Comparator<Point>() {
-                @Override
-                public int compare(Point o1, Point o2) {
-                    return Long.compare(o1.Value,o2.Value);
-                }
-            });
+            if(!doExtents) {
+                Collections.sort(points, new Comparator<Point>() {
+                    @Override
+                    public int compare(Point o1, Point o2) {
+                        return Long.compare(o1.Value, o2.Value);
+                    }
+                });
+            }
 
             return points;
         }
