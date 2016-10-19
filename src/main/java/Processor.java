@@ -130,31 +130,39 @@ public class Processor {
 
         if(resB >= resAPrev && resB <= value) {
 
-            bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+//            bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
 
-            while (resB >= resAPrev || resB <= resA) {
-                currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
-                long[] res = getMinValue(currArrayB);
-                resB = res[1];
+            boolean foundCount=false;
 
-                res = getMinValue(currArrayB);
-                if (res[1] == Long.MAX_VALUE) {
-                    bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
-//                writeValue(bw, resA, resCount);
-                    break;
-                }
-                indexesB[(int) res[0]]++;
+            while (resB >= resAPrev && resB <= value) {
+                while (!foundCount) {
 
-                if (resB != res[1]) {
+                    long[] res = getMinValue(currArrayB);
+//                    resB = res[1];
 
-                    if (resB != -1) {
+                    if (res[1] == Long.MAX_VALUE) {
                         bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
-//                    writeValue(bw,resA, resCount);
-                        resCount = 1;
+                        foundCount=true;
+//                writeValue(bw, resA, resCount);
+                        break;
                     }
-                    resB = res[1];
-                } else
-                    resCount++;
+                    indexesB[(int) res[0]]++;
+
+                    if (resB != res[1]) {
+
+                        if (resB != -1) {
+                            bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+                            foundCount=true;
+//                    writeValue(bw,resA, resCount);
+                            resCount = 1;
+                        }
+                        resB = res[1];
+                    } else
+                        resCount++;
+
+                    currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
+                }
+
             }
         }
         else {
