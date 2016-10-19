@@ -133,25 +133,30 @@ public class Extents {
 
         List<Point> resultList = new ArrayList<>();
 
-            int k = 0;
-            Point pe;
+            int k = 1;
+            Point pe, pePrev = new Point(0,0,0);
+
 
             for (Point p: points) {
 
                 if (p.Processed) continue;
 
+                pePrev = extents.get(0);
+
                 for (int j = k; j < extents.size(); j++) {
 
                     pe = extents.get(j);
 
-                    if (p.Value <= pe.Value) {
-
+                    if (p.Value >= pePrev.Value &&  p.Value < pe.Value) {
+                        resultList.add(new Point(p.Value, p.Position, pePrev.Count));
                         p.Processed = true;
-                        resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
-
                         k = j;
                         break;
                     }
+
+                    pePrev = pe;
+
+
                 }
             }
 
