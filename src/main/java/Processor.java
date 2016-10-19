@@ -9,7 +9,7 @@ import java.io.File;
  * Created by Yegor on 10/19/2016.
  */
 public class Processor {
-    private int numFiles = 10;
+    private int numFiles = 100;
     private BufferedReader[] readersA,readersB;
     private int[] indexesA,prevIndexesA;
     private int[] indexesB, prevIndexesB;
@@ -62,6 +62,8 @@ public class Processor {
     private long[] getFirstLine(BufferedReader[] readers, int[] indexes, int[] prevIndexes, long[] array) throws  IOException
     {
         String[] line = new String[numFiles];
+//        boolean hasRead = false;
+
         for (int i = 0; i < numFiles ; i++) {
 
                 if (indexes[i] > prevIndexes[i]) {
@@ -69,9 +71,10 @@ public class Processor {
 
                     if (line[i] != null && !line[i].trim().isEmpty()) {
                         array[i] = Long.valueOf(line[i]);
+//                        hasRead=true;
                     }
                     else
-                        array[i]=Long.MAX_VALUE;
+                        array[i] = Long.MAX_VALUE;
 
                     prevIndexes[i]=indexes[i];
                 }
@@ -79,7 +82,8 @@ public class Processor {
         return array;
     }
 
-    private long[] getMinValue(long[] array)
+    private long[]
+    getMinValue(long[] array)
     {
         long[] result = new long[2];
 
@@ -106,7 +110,8 @@ public class Processor {
                 prevIndexesB[i]=-1;
             }
 
-            for (int i = 0; i < 1000; i++) {
+            while(true) {
+
                 currArrayA = getFirstLine(readersA, indexesA, prevIndexesA, currArrayA);
 
                 res = getMinValue(currArrayA);
@@ -114,7 +119,6 @@ public class Processor {
                     writeValue(bw, resA, resCount);
                     break;
                 }
-                indexesA[(int) res[0]]++;
 
                 if (resA != res[1]) {
 
@@ -126,6 +130,14 @@ public class Processor {
                 } else
                     resCount++;
 
+                indexesA[(int) res[0]]++;
+
+            }
+
+            boolean foundCount=false;
+
+            while (!foundCount) {
+                foundCount = calcCountB(bw,0);
             }
 
         }
@@ -136,40 +148,11 @@ public class Processor {
 
         if(resB >= resAPrev && resB <= value) {
 
-//            bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
-
             boolean foundCount=false;
 
             while (resB >= resAPrev && resB <= value) {
                 while (!foundCount) {
-
-                    currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
-
-                    long[] res = getMinValue(currArrayB);
-//                    resB = res[1];
-
-                    if (res[1] == Long.MAX_VALUE) {
-                        bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
-                        foundCount=true;
-//                writeValue(bw, resA, resCount);
-                        break;
-                    }
-
-                    if (resB != res[1]) {
-
-                        if (resB != -1) {
-                            bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
-                            foundCount=true;
-                            prevCount += (count - resCount);
-                            resAPrev = resB;
-                            resB = res[1];
-                            break;//                    writeValue(bw,resA, resCount);
-                            //resCount = 1;
-                        }
-                    } else
-                        resCount++;
-
-                    indexesB[(int) res[0]]++;
+                    foundCount = calcCountB(bw,count);
                 }
 
             }
@@ -180,5 +163,39 @@ public class Processor {
             prevCount += count;
             resAPrev = value;
         }
+    }
+
+    private boolean calcCountB(BufferedWriter bw,int count) throws IOException{
+
+        int resCount = 0;
+        while(true) {
+
+            currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
+
+            long[] res = getMinValue(currArrayB);
+//                    resB = res[1];
+
+            if (res[1] == Long.MAX_VALUE) {
+                bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+                return false;
+            }
+
+            if (resB != res[1]) {
+
+                if (resB != -1) {
+                    bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+                    prevCount += (count - resCount);
+                    resAPrev = resB;
+                    resB = res[1];
+                    break;
+
+                }
+            } else
+                resCount++;
+
+            indexesB[(int) res[0]]++;
+        }
+
+        return true;
     }
 }

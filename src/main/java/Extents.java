@@ -8,7 +8,7 @@ public class Extents {
 
     private int _offsetPoints = 50000; // read by this count from numbers.txt
     private int _offsetExtents = 5; // read by this count from extents.txt and save to temp file
-    private boolean _writeOutput = false;
+    private boolean _writeOutput = true;
     private int _numPartitions = 100;
     private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\extents_res.txt";
     private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\data_a_%d.txt";
@@ -68,7 +68,8 @@ public class Extents {
                 processor.Run();
             }
             catch (Exception e){
-                System.out.println(e.toString());
+                logError(e.getMessage());
+                e.printStackTrace();
             }
         }
 
