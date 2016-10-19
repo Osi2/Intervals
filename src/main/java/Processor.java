@@ -134,9 +134,9 @@ public class Processor {
 
             }
 
-            boolean foundCount=false;
+            boolean foundCount=true;
 
-            while (!foundCount) {
+            while (foundCount) {
                 foundCount = calcCountB(bw,0);
             }
 
@@ -187,15 +187,12 @@ public class Processor {
                     prevCount += (count - resCount);
                     resAPrev = resB;
                     resB = res[1];
-                    break;
-
+                    return true;
                 }
-            } else
+            } else{
                 resCount++;
-
-            indexesB[(int) res[0]]++;
+                indexesB[(int) res[0]]++;
+            }
         }
-
-        return true;
     }
 }
