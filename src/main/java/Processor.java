@@ -98,7 +98,13 @@ public class Processor {
 
             currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
             long[] res = getMinValue(currArrayB);
+//            long[] res;
             resB = res[1];
+
+            for (int i = 0; i < numFiles; i++) {
+                indexesB[i]=-1;
+                prevIndexesB[i]=-1;
+            }
 
             for (int i = 0; i < 1000; i++) {
                 currArrayA = getFirstLine(readersA, indexesA, prevIndexesA, currArrayA);
@@ -137,6 +143,8 @@ public class Processor {
             while (resB >= resAPrev && resB <= value) {
                 while (!foundCount) {
 
+                    currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
+
                     long[] res = getMinValue(currArrayB);
 //                    resB = res[1];
 
@@ -146,21 +154,22 @@ public class Processor {
 //                writeValue(bw, resA, resCount);
                         break;
                     }
-                    indexesB[(int) res[0]]++;
 
                     if (resB != res[1]) {
 
                         if (resB != -1) {
                             bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
                             foundCount=true;
-//                    writeValue(bw,resA, resCount);
-                            resCount = 1;
+                            prevCount += (count - resCount);
+                            resAPrev = resB;
+                            resB = res[1];
+                            break;//                    writeValue(bw,resA, resCount);
+                            //resCount = 1;
                         }
-                        resB = res[1];
                     } else
                         resCount++;
 
-                    currArrayB = getFirstLine(readersB, indexesB, prevIndexesB, currArrayB);
+                    indexesB[(int) res[0]]++;
                 }
 
             }
