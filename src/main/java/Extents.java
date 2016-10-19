@@ -18,6 +18,7 @@ public class Extents {
 
     private long[] _extentsA2;
     private long[] _extentsB2;
+    private Point _pePrev;
 
     private class Point {
 
@@ -133,28 +134,31 @@ public class Extents {
 
         List<Point> resultList = new ArrayList<>();
 
-            int k = 1;
-            Point pe, pePrev = new Point(0,0,0);
-
+            int k = 0;
+            Point pe;
 
             for (Point p: points) {
 
                 if (p.Processed) continue;
 
-                pePrev = extents.get(0);
+
+                if (_pePrev == null) {
+                    _pePrev = extents.get(0);
+                    k = 1;
+                }
 
                 for (int j = k; j < extents.size(); j++) {
 
                     pe = extents.get(j);
 
-                    if (p.Value >= pePrev.Value &&  p.Value < pe.Value) {
-                        resultList.add(new Point(p.Value, p.Position, pePrev.Count));
+                    if (p.Value >= _pePrev.Value &&  p.Value <= pe.Value) {
+                        resultList.add(new Point(p.Value, p.Position, _pePrev.Count));
                         p.Processed = true;
                         k = j;
                         break;
                     }
 
-                    pePrev = pe;
+                    _pePrev = pe;
 
 
                 }
