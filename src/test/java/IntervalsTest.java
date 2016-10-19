@@ -20,8 +20,8 @@ public class IntervalsTest {
         String fileExpected = System.getProperty("FileResult");
         String fileResult = System.getProperty("FileResult");
 
-        Intervals intervals = new Intervals();
-        intervals.Run(fileExtents, filePoints, fileResult);
+        Extents extents = new Extents();
+        extents.Run(fileExtents, filePoints, fileResult);
 
 
         try {

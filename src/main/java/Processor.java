@@ -16,13 +16,13 @@ public class Processor {
     private long[] currArrayA;
     private long[] currArrayB;
     private long resValue=-1;
-    private int resCount=1;
+    private int resCount=0;
     private int prevCount;
     private long resA;
     private long resAPrev;
     private long resB;
     private long resBPrev;
-    private String resFile = "D:\\_Projects\\Intervals\\data\\imp\\result.txt";
+    private String resFile = "D:\\_Projects\\Intervals\\data\\tmp\\result.txt";
 
     public Processor() throws FileNotFoundException
     {
@@ -160,7 +160,7 @@ public class Processor {
         else {
 
             bw.write(value + "|" + (count + prevCount - resCount) + "\n");
-            prevCount = count;
+            prevCount += count;
             resAPrev = value;
         }
     }
