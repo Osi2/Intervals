@@ -86,7 +86,7 @@ public class Processor {
         long min = array[0];
         result[0]=0;
         for (int i = 1; i < array.length; i++) {
-            if (array[i] < min) {min=array[i];result[0]=i;break;}
+            if (array[i] < min) {min=array[i];result[0]=i;}
         }
         result[1]=min;
         return result;
