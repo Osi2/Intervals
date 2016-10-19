@@ -7,10 +7,10 @@ import java.util.*;
 public class Extents {
 
     private int _offsetPoints = 50000; // read by this count from numbers.txt
-    private int _offsetExtents = 5; // read by this count from extents.txt and save to temp file
+    private int _offsetExtents = 10000; // read by this count from extents.txt and save to temp file
     private boolean _writeOutput = true;
     private int _numPartitions = 100;
-    private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\extents_res.txt";
+    private String fileExtentsRes =  "D:\\_Projects\\Intervals\\data\\tmp\\result.txt";
     private String fileExtentsTmpA = "D:\\_Projects\\Intervals\\data\\tmp\\data_a_%d.txt";
     private String fileExtentsTmpB = "D:\\_Projects\\Intervals\\data\\tmp\\data_b_%d.txt";
 
@@ -61,32 +61,44 @@ public class Extents {
 
         List<Point> extents, points;
 
-        if (ReadAndSortExtents(fileExtents, _offsetExtents))
-        {
-            try {
-                Processor processor = new Processor();
-                processor.Run();
+
+        try {
+
+            ReadAndSortExtents(fileExtents, _offsetExtents);
+
+            Processor processor = new Processor();
+            processor.Run();
+
+            List<Point> results=new ArrayList<>();
+
+            // read points from numbers.txt sequentially by row count = _offsetExtents
+        try (BufferedReader br1 = new BufferedReader(new FileReader(filePoints));
+             BufferedReader br2 = new BufferedReader(new FileReader(fileExtentsRes));
+             BufferedWriter bw = new BufferedWriter(new FileWriter(fileResult,true))) {
+
+            while (!(points = ReadPointsFromFile(br1, _offsetPoints, false)).isEmpty()) {
+                while (!(extents = ReadPointsFromFile(br2, _offsetExtents, true)).isEmpty()) {
+                    results.addAll(ProcessPoints(extents, points, fileResult));
+                }
+
+                for (Point p: results) {
+                    bw.write(String.valueOf(p.Count) + "\n");
+                }
+
             }
-            catch (Exception e){
-                logError(e.getMessage());
-                e.printStackTrace();
-            }
+
+        } catch (IOException e) {
+            logError(e.toString());
+        }
+//        }
+        }
+        catch (Exception e){
+            logError(e.getMessage());
+            e.printStackTrace();
         }
 
-        // read points from numbers.txt sequentially by row count = _offsetExtents
-//        if (!(extents = ReadAndSortExtents(fileExtents, _offsetExtents)).isEmpty())
-//        {
-//            // read points from numbers.txt sequentially by row count = _offsetPoints
-//            try (BufferedReader reader = new BufferedReader(new FileReader(filePoints))) {
-//
-//                while (!(points = ReadPointsFromFile(reader, _offsetPoints, false)).isEmpty()) {
-//                    ProcessPoints(extents, points, fileResult);
-//                }
-//
-//            } catch (IOException e) {
-//                logError(e.toString());
-//            }
-//        }
+
+
 
 
         long estimatedTime = System.currentTimeMillis() - startTime;
@@ -98,11 +110,9 @@ public class Extents {
     }
 
 
-    private void ProcessPoints(List<Point> extents, List<Point> points, String outFile) {
+    private List<Point> ProcessPoints(List<Point> extents, List<Point> points, String outFile) {
 
         List<Point> resultList = new ArrayList<>();
-
-        try (FileWriter fw = new FileWriter(outFile,true)){
 
             int k = 0;
             Point pe;
@@ -115,7 +125,7 @@ public class Extents {
 
                     if (p.Value <= pe.Value) {
 
-                        resultList.add(new Point(p.Value, p.Position, pe.Count + 1));
+                        resultList.add(new Point(p.Value, p.Position, pe.Count));
                         k = j;
                         break;
                     }
@@ -131,13 +141,10 @@ public class Extents {
             });
 
             // Output results
-            for (Point p: resultList) {
-                fw.write(String.valueOf(p.Count) + "\n");
-            }
-
-        } catch (IOException e) {
-            logError(e.getMessage());
-        }
+//            for (Point p: resultList) {
+//                fw.write(String.valueOf(p.Count) + "\n");
+//            }
+        return resultList;
     }
 
 
@@ -197,31 +204,6 @@ public class Extents {
             logError(e.getMessage());
             return false;
         }
-
-        /// TODO: make merge sort in one large extentsRes.txt file
-
-//        try(BufferedReader reader = new BufferedReader(new FileReader(fileExtents))){
-//
-//            List<Point> extents = ReadPointsFromFile(reader,_offsetPoints,false);
-//
-//            int counter = 0;
-//
-//            for (Point p : extents) {
-//                if (p.Type == 'A') counter++;
-//                if (p.Type == 'B') counter--;
-//
-//                p.Count = counter;
-//            }
-//            return extents;
-//
-//        }
-//        catch (Exception e)
-//        {
-//            return  null;
-//        }
-
-//        return false;
-
     }
 
     public int ReadExtentsFromFile(BufferedReader reader, int count)
@@ -260,18 +242,26 @@ public class Extents {
     }
 
     // read specific amount of lines from file
-    public List<Point> ReadPointsFromFile(BufferedReader reader, int count, boolean doExtents )
+    public List<Point> ReadPointsFromFile(BufferedReader reader, int count, boolean doExtents)
     {
         List<Point> points = new ArrayList<>();
 
         String line;
+        String[] s;
 
         try {
 
             int i = 0;
             while (i < count && (line = reader.readLine()) != null) {
 
-                points.add(new Point(line, i));
+                if(doExtents) {
+
+                    s=line.split(" ");
+                    points.add(new Point(Long.valueOf(s[0]),i,Integer.valueOf(s[1])));
+
+                }
+                else
+                    points.add(new Point(line, i));
 
                 i++;
             }

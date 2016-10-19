@@ -159,7 +159,7 @@ public class Processor {
         }
         else {
 
-            bw.write(value + "|" + (count + prevCount - resCount) + "\n");
+            bw.write(value + " " + (count + prevCount - resCount) + "\n");
             prevCount += count;
             resAPrev = value;
         }
@@ -176,14 +176,14 @@ public class Processor {
 //                    resB = res[1];
 
             if (res[1] == Long.MAX_VALUE) {
-                bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+                bw.write(resB + " " + (count + prevCount - resCount) + "\n");
                 return false;
             }
 
             if (resB != res[1]) {
 
                 if (resB != -1) {
-                    bw.write(resB + "|" + (count + prevCount - resCount) + "\n");
+                    bw.write(resB + " " + (count + prevCount - resCount) + "\n");
                     prevCount += (count - resCount);
                     resAPrev = resB;
                     resB = res[1];
