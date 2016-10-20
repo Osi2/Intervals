@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class ExtentsSolver1 {
 
-    private int POINTS_COUNT = 10000;
+    private int POINTS_COUNT = 50000;
     private double[] countByPoint;
     private int _counter = 0;
 
