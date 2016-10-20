@@ -25,7 +25,6 @@ public class ExtentsSolver {
         String inputDir = args.length > 0 ? args[0] : ".//data";
 
         ExtentsSolver extentsSolver = new ExtentsSolver();
-//        extentsSolver.test();
         extentsSolver.addExtents(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.sortExtentsAndCalcCounts();
         extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"));
@@ -80,16 +79,31 @@ public class ExtentsSolver {
                 count--;
         }
         int len = String.valueOf(count).length();
-
+        if (count < 0) count = 0;
         return Double.valueOf(String.valueOf(intCurr) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
     }
 
     private void processPoints(Path path) throws IOException{
         try (Scanner scanner = new Scanner(path)) {
             while (scanner.hasNext()) {
-                //addExtent(scanner.nextInt(), scanner.nextInt());
+                int count = readPointCount(scanner.nextInt());
             }
         }
+    }
+
+    private int readPointCount(int p) {
+
+        double prev = countByPoint[0];
+        int count = 0;
+
+        for (int i = 1; i < countByPoint.length; i++) {
+            if (p > prev && p < countByPoint[i]) {
+                String curr = String.valueOf(countByPoint[i]);
+                int dotCurr = curr.indexOf('.');
+                count = curr.equals("0.0") ? 0 : Integer.parseInt(curr.substring(dotCurr + 2, curr.length() - 1));
+            }
+        }
+        return count;
     }
 
 }
