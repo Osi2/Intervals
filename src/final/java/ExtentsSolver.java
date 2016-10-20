@@ -1,8 +1,6 @@
 import java.io.BufferedWriter;
-import java.io.FileDescriptor;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -23,15 +21,12 @@ public class ExtentsSolver {
 
     public static void main(String[] args) throws IOException {
 
-
-
         String inputDir = args.length > 0 ? args[0] : ".//data";
 
         ExtentsSolver extentsSolver = new ExtentsSolver();
         extentsSolver.addExtents(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.sortExtentsAndCalcCounts();
         extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"), Paths.get(inputDir + "/result.txt"));
-
 
     }
 
@@ -87,7 +82,6 @@ public class ExtentsSolver {
 
         String s = String.valueOf(intCurr) + "." + String.valueOf(type) + "0000000".substring(1, 7 - len) + String.valueOf(count) + "1";
 //        System.out.println(s);
-
         return Double.valueOf(s);
     }
 
