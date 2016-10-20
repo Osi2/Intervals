@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 public class ExtentsSolver {
 
-    private int EXTENTS_COUNT = 50;
+    private int EXTENTS_COUNT = 500000;
     private double[] countByPoint;
     private int _counter = 0;
 
@@ -44,8 +44,8 @@ public class ExtentsSolver {
     }
 
     private void addExtent(Double a, Double b){
-        countByPoint[_counter++] = Double.valueOf(a.intValue() + ".1000011");
-        countByPoint[_counter++] = Double.valueOf(b.intValue() + ".2000011");
+        countByPoint[_counter++] = Double.valueOf(a.intValue() + ".10000011");
+        countByPoint[_counter++] = Double.valueOf(b.intValue() + ".20000011");
     }
 
     private void sortExtentsAndCalcCounts(){
@@ -81,9 +81,14 @@ public class ExtentsSolver {
             else
                 count--;
         }
+
         int len = String.valueOf(count).length();
         if (count < 0) count = 0;
-        return Double.valueOf(String.valueOf(intCurr) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
+
+        String s = String.valueOf(intCurr) + "." + String.valueOf(type) + "0000000".substring(1, 7 - len) + String.valueOf(count) + "1";
+//        System.out.println(s);
+
+        return Double.valueOf(s);
     }
 
     private void processPoints(Path input, Path output) throws IOException{
