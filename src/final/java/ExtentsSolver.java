@@ -1,3 +1,6 @@
+import java.io.BufferedWriter;
+import java.io.FileDescriptor;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +30,7 @@ public class ExtentsSolver {
         ExtentsSolver extentsSolver = new ExtentsSolver();
         extentsSolver.addExtents(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.sortExtentsAndCalcCounts();
-        extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"));
+        extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"), Paths.get(inputDir + "/result.txt"));
 
 
     }
@@ -83,24 +86,36 @@ public class ExtentsSolver {
         return Double.valueOf(String.valueOf(intCurr) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
     }
 
-    private void processPoints(Path path) throws IOException{
-        try (Scanner scanner = new Scanner(path)) {
+    private void processPoints(Path input, Path output) throws IOException{
+        try (Scanner scanner = new Scanner(input);
+             BufferedWriter bw = new BufferedWriter(new FileWriter(output.toString()))) {
             while (scanner.hasNext()) {
-                int count = readPointCount(scanner.nextInt());
+                int point = scanner.nextInt();
+                int count = readPointCount(point);
+                bw.write(String.valueOf(count) + "\n");
             }
         }
     }
 
     private int readPointCount(int p) {
-
-        double prev = countByPoint[0];
         int count = 0;
+        int i;
 
-        for (int i = 1; i < countByPoint.length; i++) {
-            if (p > prev && p < countByPoint[i]) {
-                String curr = String.valueOf(countByPoint[i]);
+        for (i = 0; i < countByPoint.length; i++) {
+            if (countByPoint[i] == 0.0)
+                continue;
+            else
+                break;
+        }
+
+        double prev = countByPoint[i];
+
+        for (int j = i + 1; j < countByPoint.length; j++) {
+            if (p > prev && p < countByPoint[j]) {
+                String curr = String.valueOf(countByPoint[j]);
                 int dotCurr = curr.indexOf('.');
                 count = curr.equals("0.0") ? 0 : Integer.parseInt(curr.substring(dotCurr + 2, curr.length() - 1));
+                break;
             }
         }
         return count;
