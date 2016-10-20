@@ -1,14 +1,16 @@
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by Yegor on 10/20/2016.
  */
 public class ExtentsSolver1 {
 
+    private int POINTS_COUNT = 10000;
     private double[] countByPoint;
     private int _counter = 0;
 
@@ -55,16 +57,12 @@ public class ExtentsSolver1 {
     private void sortExtentsAndCalcCounts(){
         Arrays.sort(countByPoint);
 
-        for (int i = 0; i < countByPoint.length; i++) {
-            if (countByPoint[i] == 0.0) continue;
-
-            double prev = 0.0;
-            for (int j = i; j < countByPoint.length; j++) {
-                countByPoint[j] = changeCounter(String.valueOf(countByPoint[j]), String.valueOf(prev));
-                prev = countByPoint[j];
-            }
-            break;
+        double prev = 0.0;
+        for (int j = 0; j < countByPoint.length; j++) {
+            countByPoint[j] = changeCounter(String.valueOf(countByPoint[j]), String.valueOf(prev));
+            prev = countByPoint[j];
         }
+
     }
 
     private double changeCounter(String curr, String prev){
@@ -102,41 +100,82 @@ public class ExtentsSolver1 {
     }
 
     private void processPoints(String input, String output) throws IOException{
+        String line;
+        String[] s;
+        int i=0;
+        List<Point> points = new ArrayList<>();
+
         try (BufferedReader reader = new BufferedReader(new FileReader(input));
              BufferedWriter bw = new BufferedWriter(new FileWriter(output))) {
-            String line;
-            String[] s;
-            while ((line = reader.readLine())!=null) {
+
+            while ((line = reader.readLine())!=null){
+
                 int point = Integer.valueOf(line);
-                int count = readPointCount(point);
-                bw.write(String.valueOf(count) + "\n");
+                points.add(new Point(point,0,i));
+
+                if (i > POINTS_COUNT) {
+                    writeOutput(bw, points);
+                    points.clear();
+                    i=0;
+                }
+
+                i++;
             }
+            writeOutput(bw,points);
         }
     }
 
-    private int readPointCount(int p) {
-        int count = 0;
-        int i;
+    private void writeOutput(BufferedWriter bw, List<Point> list) throws IOException{
+        List<Point> _points = readPointCount(sortListByValue(list));
 
-        for (i = 0; i < countByPoint.length; i++) {
-            if (countByPoint[i] == 0.0)
-                continue;
-            else
-                break;
+        for(Point p: _points){
+            bw.write(String.valueOf(p.count) + "\n");
         }
+    }
 
-        double prev = countByPoint[i];
+    private List<Point> readPointCount(List<Point> points) {
+        int k = 1;
 
-        for (int j = i + 1; j < countByPoint.length; j++) {
-            if (p >= prev && p <= countByPoint[j]) {
-                String _prev = String.valueOf(prev);
-                int dot = _prev.indexOf('.');
-                count = _prev.equals("0.0") ? 1 : Integer.parseInt(_prev.substring(dot + 2, _prev.length() - 1));
-                break;
+        for (Point p:points){
+
+            double prev = countByPoint[k-1];
+
+            for (int j = k; j < countByPoint.length; j++) {
+                if (p.value >= prev && p.value <= countByPoint[j]) {
+                    String _prev = String.valueOf(prev);
+                    int dot = _prev.indexOf('.');
+                    p.count = _prev.equals("0.0") ? 1 : Integer.parseInt(_prev.substring(dot + 2, _prev.length() - 1));
+                    k = j;
+                    break;
+                }
+                prev = countByPoint[j];
             }
-            prev = countByPoint[j];
         }
-        return count;
+        return sortListByPosition(points);
+    }
+
+    private List<Point> sortListByPosition(List<Point> list){
+
+        Collections.sort(list, new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                return Integer.compare(o1.position, o2.position);
+            }
+        });
+
+        return list;
+    }
+
+    private List<Point> sortListByValue(List<Point> list){
+
+        Collections.sort(list, new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                return Integer.compare(o1.value, o2.value);
+            }
+        });
+
+        return list;
     }
 
     private int readFileLinesCount(Path path) throws IOException{
@@ -148,5 +187,18 @@ public class ExtentsSolver1 {
             }
         }
         return count;
+    }
+
+    private class Point{
+
+        public int value;
+        public int count;
+        public int position;
+
+        public Point(int value, int count, int position){
+            this.count = count;
+            this.value = value;
+            this.position = position;
+        }
     }
 }
