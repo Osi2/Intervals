@@ -66,17 +66,22 @@ public class ExtentsSolver {
         int dotCurr = curr.indexOf('.');
         int dotPrev = prev.indexOf('.');
 
-        int _int = Integer.parseInt(curr.substring(0, dotCurr));
+        int intCurr = Integer.parseInt(curr.substring(0, dotCurr));
+        int intPrev = Integer.parseInt(prev.substring(0, dotPrev));
         byte type = Byte.parseByte(curr.substring(dotCurr + 1, dotCurr + 2));
         int count = prev.equals("0.0") ? 0 : Integer.parseInt(prev.substring(dotPrev + 2, prev.length() - 1));
 
-        if (type == 1)
-            count++;
-        else
-            count--;
+        if (intCurr == intPrev)
+            count = intPrev;
+        else {
+            if (type == 1)
+                count++;
+            else
+                count--;
+        }
         int len = String.valueOf(count).length();
 
-        return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
+        return Double.valueOf(String.valueOf(intCurr) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
     }
 
     private void processPoints(Path path) throws IOException{
