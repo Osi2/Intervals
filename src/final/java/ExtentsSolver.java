@@ -42,8 +42,8 @@ public class ExtentsSolver {
     }
 
     private void addExtent(Double a, Double b){
-        countByPoint[_counter++] = Double.valueOf(a.intValue() + ".1");
-        countByPoint[_counter++] = Double.valueOf(b.intValue() + ".2");
+        countByPoint[_counter++] = Double.valueOf(a.intValue() + ".1000011");
+        countByPoint[_counter++] = Double.valueOf(b.intValue() + ".2000011");
     }
 
     private void sortExtentsAndCalcCounts(){
@@ -57,6 +57,7 @@ public class ExtentsSolver {
                 countByPoint[j] = changeCounter(String.valueOf(countByPoint[j]), String.valueOf(prev));
                 prev = countByPoint[j];
             }
+            break;
         }
     }
 
@@ -66,13 +67,16 @@ public class ExtentsSolver {
         int dotPrev = prev.indexOf('.');
 
         int _int = Integer.parseInt(curr.substring(0, dotCurr));
-        byte type = Byte.parseByte(curr.substring(dotCurr + 1, 3));
-        int count = prev.equals("0.0") ? 0 : Integer.parseInt(prev.substring(dotPrev + 2, prev.length()));
+        byte type = Byte.parseByte(curr.substring(dotCurr + 1, dotCurr + 2));
+        int count = prev.equals("0.0") ? 0 : Integer.parseInt(prev.substring(dotPrev + 2, prev.length() - 1));
 
         if (type == 1)
-            return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(count++));
+            count++;
         else
-            return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(count--));
+            count--;
+        int len = String.valueOf(count).length();
+
+        return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(type) + "000000".substring(1, 6 - len) + String.valueOf(count) + "1");
     }
 
     private void processPoints(Path path) throws IOException{
