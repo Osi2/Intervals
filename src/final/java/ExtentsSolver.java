@@ -10,19 +10,22 @@ import java.util.Scanner;
  */
 public class ExtentsSolver {
 
-    private int EXTENTS_COUNT;
+    private int EXTENTS_COUNT = 100;
     private double[] countByPoint;
     private int _counter = 0;
 
-    public ExtentsSolver(String inputDir) throws IOException{
-        EXTENTS_COUNT = getFileLineCount(Paths.get(inputDir + "/extents.txt"));
+    public ExtentsSolver(){
         countByPoint = new double[EXTENTS_COUNT];
     }
 
     public static void main(String[] args) throws IOException {
+
+
+
         String inputDir = args.length > 0 ? args[0] : ".//data";
 
-        ExtentsSolver extentsSolver = new ExtentsSolver(inputDir);
+        ExtentsSolver extentsSolver = new ExtentsSolver();
+//        extentsSolver.test();
         extentsSolver.addExtents(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.sortExtentsAndCalcCounts();
         extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"));
@@ -46,20 +49,30 @@ public class ExtentsSolver {
     private void sortExtentsAndCalcCounts(){
         Arrays.sort(countByPoint);
 
-        double prev = countByPoint[0];
         for (int i = 0; i < countByPoint.length; i++) {
-            changeCounter(countByPoint[i],prev);
+            if (countByPoint[i] == 0.0) continue;
+
+            double prev = countByPoint[0];
+            for (int j = i; j < countByPoint.length; j++) {
+                countByPoint[j] = changeCounter(String.valueOf(countByPoint[j]), String.valueOf(prev));
+                prev = countByPoint[j];
+            }
         }
     }
 
-    private double changeCounter(Double curr, Double prev){
-        byte type = (byte)curr.doubleValue();
-        int count = 45;//(String.valueOf(prev.doubleValue()).substring(1, 2));
+    private double changeCounter(String curr, String prev){
+
+        int dotCurr = curr.indexOf('.');
+        int dotPrev = prev.indexOf('.');
+
+        int _int = Integer.parseInt(curr.substring(0, dotCurr));
+        byte type = Byte.parseByte(curr.substring(dotCurr + 1, 3));
+        int count = prev.equals("0.0") ? 0 : Integer.parseInt(prev.substring(dotPrev + 2, prev.length()));
 
         if (type == 1)
-            return Double.valueOf(curr.intValue() + "." + count++);
+            return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(count++));
         else
-            return Double.valueOf(curr.intValue() + "." + count--);
+            return Double.valueOf(String.valueOf(_int) + "." + String.valueOf(count--));
     }
 
     private void processPoints(Path path) throws IOException{
@@ -70,13 +83,4 @@ public class ExtentsSolver {
         }
     }
 
-    private int getFileLineCount(Path path)throws IOException{
-        int lines = 0;
-        try (Scanner scanner = new Scanner(path)) {
-            while (scanner.hasNext()) {
-                lines++;
-            }
-        }
-        return lines;
-    }
 }
