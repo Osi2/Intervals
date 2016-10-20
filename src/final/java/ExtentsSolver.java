@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 public class ExtentsSolver {
 
-    private int EXTENTS_COUNT = 100;
+    private int EXTENTS_COUNT = 50;
     private double[] countByPoint;
     private int _counter = 0;
 
@@ -54,7 +54,7 @@ public class ExtentsSolver {
         for (int i = 0; i < countByPoint.length; i++) {
             if (countByPoint[i] == 0.0) continue;
 
-            double prev = countByPoint[0];
+            double prev = 0.0;
             for (int j = i; j < countByPoint.length; j++) {
                 countByPoint[j] = changeCounter(String.valueOf(countByPoint[j]), String.valueOf(prev));
                 prev = countByPoint[j];
@@ -73,7 +73,7 @@ public class ExtentsSolver {
         byte type = Byte.parseByte(curr.substring(dotCurr + 1, dotCurr + 2));
         int count = prev.equals("0.0") ? 0 : Integer.parseInt(prev.substring(dotPrev + 2, prev.length() - 1));
 
-        if (intCurr == intPrev)
+        if (intCurr == intPrev && count != 0)
             count = intPrev;
         else {
             if (type == 1)
@@ -111,12 +111,13 @@ public class ExtentsSolver {
         double prev = countByPoint[i];
 
         for (int j = i + 1; j < countByPoint.length; j++) {
-            if (p > prev && p < countByPoint[j]) {
-                String curr = String.valueOf(countByPoint[j]);
-                int dotCurr = curr.indexOf('.');
-                count = curr.equals("0.0") ? 0 : Integer.parseInt(curr.substring(dotCurr + 2, curr.length() - 1));
+            if (p >= prev && p <= countByPoint[j]) {
+                String _prev = String.valueOf(prev);
+                int dot = _prev.indexOf('.');
+                count = _prev.equals("0.0") ? 1 : Integer.parseInt(_prev.substring(dot + 2, _prev.length() - 1));
                 break;
             }
+            prev = countByPoint[j];
         }
         return count;
     }
