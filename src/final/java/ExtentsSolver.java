@@ -1,6 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -11,22 +9,28 @@ import java.util.Scanner;
  */
 public class ExtentsSolver {
 
-    private int EXTENTS_COUNT = 500000;
     private double[] countByPoint;
     private int _counter = 0;
 
-    public ExtentsSolver(){
-        countByPoint = new double[EXTENTS_COUNT];
+    public ExtentsSolver(Path path) throws IOException{
+        int count = readFileLinesCount(path);
+        countByPoint = new double[count * 2];
     }
 
     public static void main(String[] args) throws IOException {
 
         String inputDir = args.length > 0 ? args[0] : ".//data";
 
-        ExtentsSolver extentsSolver = new ExtentsSolver();
+        long startTime = System.currentTimeMillis();
+
+        ExtentsSolver extentsSolver = new ExtentsSolver(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.addExtents(Paths.get(inputDir + "/extents.txt"));
         extentsSolver.sortExtentsAndCalcCounts();
         extentsSolver.processPoints(Paths.get(inputDir + "/numbers.txt"), Paths.get(inputDir + "/result.txt"));
+
+        long estimatedTime0 = System.currentTimeMillis() - startTime;
+
+        System.out.println("processing completed, sec: " + String.valueOf((float)estimatedTime0/1000));
 
     }
 
@@ -121,4 +125,14 @@ public class ExtentsSolver {
         return count;
     }
 
+    private int readFileLinesCount(Path path) throws IOException{
+        String line;
+        int count = 0;
+        try(BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
+            while((line = br.readLine())!=null){
+                count++;
+            }
+        }
+        return count;
+    }
 }
