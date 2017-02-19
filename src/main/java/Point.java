@@ -8,8 +8,8 @@ public class Point {
     public long Count;
     public int Position;
 
-    public Point(int value, int position){this.Value = value; this.Position = position;}
+    public Point(String value, int position){this.Value = Integer.valueOf(value); this.Position = position;}
     public Point(int value, int position, long count){this.Value = value; this.Position = position; this.Count = count;}
-    public Point(char c, int value){this.Type = c; this.Value = value;}
+    public Point(char c, String value){this.Type = c; this.Value = Integer.valueOf(value);}
 
 }
