@@ -35,13 +35,13 @@ public class tester {
         String fileExpected = "D:\\_Projects\\Intervals\\data\\expected.txt";
         String fileResult = "D:\\_Projects\\Intervals\\data\\result.txt";
 
-        Extents extents = new Extents();
-        extents.Run(fileExtents,filePoints,fileResult);
+//        Extents extents = new Extents();
+//        extents.Run(fileExtents,filePoints,fileResult);
 
 
         try {
 
-            List<String> listResult = Files.readAllLines(Paths.get(fileResult), Charset.defaultCharset());
+                       List<String> listResult = Files.readAllLines(Paths.get(fileResult), Charset.defaultCharset());
             List<String> listExpected = Files.readAllLines(Paths.get(fileExpected), Charset.defaultCharset());
 
             Boolean areEquals = Arrays.equals(listResult.toArray(), listExpected.toArray());
